@@ -1,5 +1,5 @@
 <?php
-include '../modelo/db_onnection.php';
+include '../modelo/db_connection.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_sucursal = $_POST['id_sucursal'];

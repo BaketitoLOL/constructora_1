@@ -1,5 +1,5 @@
 <?php
-include '../modelo/db_onnection.php';
+include '../modelo/db_connection.php';
 
 if (isset($_GET['id'])) {
     $id_sucursal = $_GET['id'];

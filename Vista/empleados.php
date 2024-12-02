@@ -62,6 +62,13 @@ $result = $conn->query($query);
                                 <button class="btn btn-danger"
                                     onclick="eliminarEmpleado(<?= $row['id_empleado'] ?>)">Eliminar</button>
                             </td>
+                            <td class="<?= $row['estatus'] === 'Activo' ? 'status-activo' : 'status-inactivo' ?>">
+                                <?= htmlspecialchars($row['estatus']) ?>
+                                <button class="btn btn-danger"
+                                    onclick="cambiarEstatusEmpleado(<?= $row['id_empleado'] ?>, '<?= $row['estatus'] ?>')">
+                                    <?= $row['estatus'] === 'Activo' ? 'Inactivar' : 'Reactivar' ?>
+                                </button>
+                            </td>
                         </tr>
                     <?php endwhile; ?>
                 </tbody>

@@ -1,4 +1,59 @@
 // Función para abrir el modal de empleado
+function cambiarEstatusEmpleado(idEmpleado, estatusActual) {
+    const nuevoEstatus = estatusActual === 'Activo' ? 'Inactivo' : 'Activo';
+
+    if (confirm(`¿Estás seguro de que deseas ${nuevoEstatus === 'Inactivo' ? 'inactivar' : 'reactivar'} este empleado?`)) {
+        const formData = new FormData();
+        formData.append('id_empleado', idEmpleado);
+        formData.append('nuevo_estatus', nuevoEstatus);
+
+        fetch('cambiar_estatus_empleado.php', {
+            method: 'POST',
+            body: formData,
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`Empleado ${nuevoEstatus === 'Inactivo' ? 'inactivado' : 'reactivado'} correctamente.`);
+                    location.reload();
+                } else {
+                    alert(`Error: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ocurrió un error al cambiar el estatus del empleado.');
+            });
+    }
+}
+
+function cargarSucursales() {
+    fetch('obtener_sucursales.php')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('empleado_sucursal');
+            select.innerHTML = ''; // Limpiar opciones existentes
+
+            if (data.success && data.sucursales.length > 0) {
+                data.sucursales.forEach(sucursal => {
+                    const option = document.createElement('option');
+                    option.value = sucursal.id_sucursal;
+                    option.textContent = sucursal.nombre;
+                    select.appendChild(option);
+                });
+            } else {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No hay sucursales disponibles';
+                option.disabled = true;
+                select.appendChild(option);
+            }
+        })
+        .catch(error => {
+            console.error('Error al cargar las sucursales:', error);
+            alert('No se pudieron cargar las sucursales.');
+        });
+}
 function abrirModalEmpleado(accion, idEmpleado = null) {
     const modal = document.createElement('div');
     modal.classList.add('modal-overlay');
@@ -27,7 +82,7 @@ function abrirModalEmpleado(accion, idEmpleado = null) {
 
                 <label for="empleado_sucursal">Sucursal:</label>
                 <select name="sucursal_asociada" id="empleado_sucursal" required>
-                    <!-- Opciones cargadas por AJAX o PHP -->
+                    <option value="" disabled selected>Cargando sucursales...</option>
                 </select>
 
                 <label for="empleado_salario">Salario:</label>
@@ -39,6 +94,8 @@ function abrirModalEmpleado(accion, idEmpleado = null) {
         </div>
     `;
     document.body.appendChild(modal);
+
+    cargarSucursales(); // Llama a esta función para cargar las opciones en el select
 
     if (accion === 'Editar' && idEmpleado) {
         precargarDatosEmpleado(idEmpleado);

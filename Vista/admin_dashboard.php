@@ -30,7 +30,10 @@ $total_servicios = $conn->query($query_servicios)->fetch_assoc()['total'];
                 <li><a href="sucursales.php"><i class="icon ion-md-business"></i> Sucursales</a></li>
                 <li><a href="empleados.php"><i class="icon ion-md-people"></i> Empleados</a></li>
                 <li><a href="clientes.php"><i class="icon ion-md-person"></i> Clientes</a></li>
-                <li><a href="presupuestos.php"><i class="icon ion-md-document"></i> Presupuestos</a></li>
+                <li><a href="formulario_presupuesto.php "><i class="icon ion-md-document"></i> Presupuestos</a></li>
+                <li><a href="servicios.php"><i class="icon ion-md-document"></i> Servicios</a></li>
+                <li><a href="nomina.php"><i class="icon ion-md-stats-chart"></i> Nominas</a></li> 
+
             </ul>
         </aside>
         <!-- Contenido principal -->
