@@ -69,7 +69,7 @@ if ($conn->connect_error)
             $file_path = "../pdf/Contract_" . $id_obra . ".pdf"; // Ruta del archivo PDF
         ?>
             <tr>
-                <td><?= $row['id_obra'] ?></td>
+                <td><?= htmlspecialchars($row['id_obra']) ?></td>
                 <td><?= htmlspecialchars($row['cliente']) ?></td>
                 <td><?= htmlspecialchars($row['direccion']) ?></td>
                 <td><?= htmlspecialchars($row['fecha_inicio']) ?></td>
@@ -82,7 +82,7 @@ if ($conn->connect_error)
                         <i class="fas fa-edit"></i> Editar
                     </button>
                     <!-- Botón para eliminar -->
-                    <button class="btn btn-danger btn-sm" onclick="eliminarObra(<?= $row['id_obra'] ?>)">
+                    <button class="btn btn-danger btn-sm" onclick="eliminarObra(<?= $id_obra ?>)">
                         <i class="fas fa-trash"></i> Eliminar
                     </button>
                     <!-- Generar contrato PDF -->
@@ -109,6 +109,31 @@ if ($conn->connect_error)
     </tbody>
 </table>
 </div>
+
+<div class="modal fade" id="uploadSignatureModal" tabindex="-1" aria-labelledby="uploadSignatureModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="upload_signature.php" method="POST" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploadSignatureModalLabel">Cargar Firma</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id_obra" id="modalFolioObra">
+                    <div class="mb-3">
+                        <label for="signature" class="form-label">Archivo de Firma:</label>
+                        <input type="file" name="signature" id="signature" class="form-control" accept="image/*" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary">Cargar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
     <!-- Modal: Agregar Obra -->
     <div class="modal fade" id="addObraModal" tabindex="-1" aria-labelledby="addObraModalLabel" aria-hidden="true">
         <div class="modal-dialog">

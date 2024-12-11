@@ -79,10 +79,10 @@ try {
     $pdf->MultiCell(190, 10, "All material is guaranteed to be as specified. All work to be completed in a workmanlike manner according to standard practices. Any alteration or deviation from above specifications involving extra costs will be executed only upon written orders and will become an extra charge over and above the estimate. All agreements contingent upon strikes, accident, or delays beyond our control.", 0, 'L');
     $pdf->Ln(5);
 
-    $signature_path = "../Firma_administrador/firma_.png"; // Ruta de la firma
+    $signature_path = "../Firma_administrador/firma_.png";
                 $pdf->Cell(10, 10, 'Authorized: Signature:', 0, 0, 'L');
                 if (file_exists($signature_path)) {
-                    $pdf->Image($signature_path, $pdf->GetX() + 40, $pdf->GetY() - 5, 30); // Ajusta la anchura a 30px
+                    $pdf->Image($signature_path, $pdf->GetX() + 40, $pdf->GetY() - 5, 30);
                 }
                 $pdf->Ln(20);
                 
