@@ -1,25 +1,26 @@
 <?php
 include '../modelo/db_connection.php';
 
-// Verificar que los datos POST existan
-if (!empty($_POST['id_cliente']) && !empty($_POST['nuevo_estatus'])) {
-    $id_cliente = $_POST['id_cliente'];
-    $nuevo_estatus = $_POST['nuevo_estatus'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $idCliente = intval($_POST['id_cliente']);
+    $nuevoEstatus = $_POST['estatus'];
 
-    // Actualizar el estatus del cliente
-    $stmt = $conn->prepare("UPDATE clientes SET estatus = ? WHERE id_cliente = ?");
-    $stmt->bind_param("si", $nuevo_estatus, $id_cliente);
-    $stmt->execute();
-
-    if ($stmt->affected_rows > 0) {
-        echo json_encode(["success" => true]);
-    } else {
-        echo json_encode(["success" => false, "error" => "No se pudo actualizar el cliente."]);
+    // Validar que el nuevo estatus sea válido
+    if (!in_array($nuevoEstatus, ['Activo', 'Inactivo'])) {
+        echo "Estatus inválido.";
+        exit;
     }
-    exit;
+
+    $query = "UPDATE clientes SET estatus = ? WHERE id_cliente = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("si", $nuevoEstatus, $idCliente);
+
+    if ($stmt->execute()) {
+        echo "Estatus del cliente cambiado a {$nuevoEstatus}.";
+    } else {
+        echo "Error al cambiar el estatus del cliente.";
+    }
+} else {
+    echo "Método no permitido.";
 }
-
-// Si los datos no están completos, enviar error
-http_response_code(400);
-echo json_encode(["success" => false, "error" => "Datos incompletos."]);
-
+?>

@@ -2,30 +2,32 @@
 include '../modelo/db_connection.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nombre = $_POST['nombre'];
-    $telefono = $_POST['telefono'];
-    $correo = $_POST['CorreoSucursal'];
-    $paginaWeb = $_POST['PagWebSucursal'] ?? null;
-    $calle = $_POST['calle'] ?? null;
-    $ciudad = $_POST['ciudad'] ?? null;
-    $estado = $_POST['estado'] ?? null;
-    $codigo_postal = $_POST['codigo_postal'] ?? null;
+    $nombre = trim($_POST['nombre']);
+    $telefono = trim($_POST['telefono']);
+    $correo = trim($_POST['CorreoSucursal']);
+    $paginaWeb = trim($_POST['PagWebSucursal']) ?: null; // Campo opcional
 
-    // Insertar dirección si está presente
-    $id_direccion = null;
-    if ($calle && $ciudad && $estado && $codigo_postal) {
-        $stmt = $conn->prepare("INSERT INTO direcciones (calle, ciudad, estado, codigo_postal) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("ssss", $calle, $ciudad, $estado, $codigo_postal);
-        $stmt->execute();
-        $id_direccion = $stmt->insert_id;
+    // Validar campos obligatorios
+    if (!$nombre || !$telefono || !$correo) {
+        echo "Error: Todos los campos obligatorios deben completarse.";
+        exit;
     }
 
-    // Insertar sucursal
-    $stmt = $conn->prepare("INSERT INTO sucursales (nombre, telefono, CorreoSucursal, PagWebSucursal, id_direccion) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssi", $nombre, $telefono, $correo, $paginaWeb, $id_direccion);
-    $stmt->execute();
+    try {
+        // Insertar sucursal con id_direccion en NULL inicialmente
+        $querySucursal = "INSERT INTO sucursales (nombre, telefono, CorreoSucursal, PagWebSucursal, id_direccion) VALUES (?, ?, ?, ?, NULL)";
+        $stmt = $conn->prepare($querySucursal);
+        $stmt->bind_param("ssss", $nombre, $telefono, $correo, $paginaWeb);
+        $stmt->execute();
 
-    header("Location: sucursales.php");
-    exit;
+        echo "Sucursal agregada exitosamente.";
+        header("Location: sucursales.php"); // Redirigir a la lista de sucursales
+        exit;
+    } catch (Exception $e) {
+        echo "Error al agregar la sucursal: " . $e->getMessage();
+    }
+} else {
+    echo "Método no permitido.";
 }
 ?>
+ 

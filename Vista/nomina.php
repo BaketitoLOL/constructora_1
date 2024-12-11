@@ -21,6 +21,7 @@ while ($row = $result->fetch_assoc()) {
 </head>
 
 <body>
+
     <div class="dashboard-container">
         <main class="main-content">
             <header>

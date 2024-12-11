@@ -15,7 +15,7 @@ function enviarCorreo($destinatario, $asunto, $cuerpo) {
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = 587;
 
-        $mail->setFrom('tu-correo@gmail.com', 'Soporte de Sistema');
+        $mail->setFrom('tu-correo@gmail.com', 'Contructract');
         $mail->addAddress($destinatario);
 
         $mail->isHTML(true);
