@@ -18,6 +18,25 @@ if ($conn->connect_error)
 <body>
     <?php include 'navbar.php'; ?>
     <div class="container mt-5">
+
+    <form action="upload_signature.php" method="POST" enctype="multipart/form-data" class="p-4 border rounded shadow-sm">
+    <input type="hidden" name="id_obra" value="<?php echo isset($id_obra) ? $id_obra : ''; ?>">
+    
+    <div class="mb-3">
+        <label for="signature" class="form-label fw-bold">Upload Signature</label>
+        <input 
+            type="file" 
+            name="Firma_administrador" 
+            id="signature" 
+            class="form-control" 
+            accept="image/*" 
+            required
+        >
+    </div>
+    
+    <button type="submit" class="btn btn-primary w-100">Upload</button>
+</form></br></br>
+
         <h1>Gestión de Obras</h1>
         <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addObraModal">
             <i class="fas fa-plus"></i> Agregar Obra
@@ -90,7 +109,6 @@ if ($conn->connect_error)
     </tbody>
 </table>
 </div>
-
     <!-- Modal: Agregar Obra -->
     <div class="modal fade" id="addObraModal" tabindex="-1" aria-labelledby="addObraModalLabel" aria-hidden="true">
         <div class="modal-dialog">

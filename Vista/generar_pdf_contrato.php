@@ -79,10 +79,20 @@ try {
     $pdf->MultiCell(190, 10, "All material is guaranteed to be as specified. All work to be completed in a workmanlike manner according to standard practices. Any alteration or deviation from above specifications involving extra costs will be executed only upon written orders and will become an extra charge over and above the estimate. All agreements contingent upon strikes, accident, or delays beyond our control.", 0, 'L');
     $pdf->Ln(5);
 
-    $pdf->Ln(15);
-    $pdf->Cell(190, 8, 'Authorized Signature: ___________________________', 0, 1);
-    $pdf->Ln(5);
-    $pdf->Cell(190, 8, 'Accepted: Signature: ___________________________', 0, 1);
+    $signature_path = "../Firma_administrador/firma_.png"; // Ruta de la firma
+                $pdf->Cell(10, 10, 'Authorized: Signature:', 0, 0, 'L');
+                if (file_exists($signature_path)) {
+                    $pdf->Image($signature_path, $pdf->GetX() + 40, $pdf->GetY() - 5, 30); // Ajusta la anchura a 30px
+                }
+                $pdf->Ln(20);
+                
+                // Aceptación del contrato
+                $pdf->SetFont('Arial', 'B', 10);
+                $pdf->Cell(0, 10, 'ACCEPTANCE OF CONTRACT', 0, 1, 'C');
+                $pdf->MultiCell(0, 6, 'The above prices, specifications and conditions are hereby accepted. You are authorized to do the work as specified. Payment will be made as outlined above.', 0, 'L');
+                $pdf->Ln(10);
+                $pdf->Cell(30, 10, 'Accepted: Signature:', 0, 0, 'L');
+                $pdf->Cell(0, 10, '       _______________________________', 0, 1, 'L');
 
     // Crear directorio si no existe
     if (!is_dir('../pdf')) {
