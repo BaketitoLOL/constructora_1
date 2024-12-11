@@ -20,6 +20,10 @@ if ($id_cliente) {
         $nombre_cliente = $result->fetch_assoc()['nombre_completo'];
     }
 }
+
+// Obtener los servicios
+$query_servicios = "SELECT * FROM servicios WHERE estatus = 'Activo'";
+$result_servicios = $conn->query($query_servicios);
 ?>
 
 <!DOCTYPE html>
@@ -58,6 +62,10 @@ if ($id_cliente) {
             flex: 1;
             padding: 20px;
         }
+        .service-card img {
+            max-height: 200px;
+            object-fit: cover;
+        }
     </style>
 </head>
 <body>
@@ -66,34 +74,53 @@ if ($id_cliente) {
     <div class="sidebar">
         <h3 class="text-center">Cliente</h3>
         <a href="perfil_cliente.php"><i class="fas fa-user-circle"></i> Mi Perfil</a>
-        <a href="consultar_presu_clientes.php"><i class="fas fa-file-alt"></i> Mis Presupuestos</a>
+        <a href="consultar_obras_clientes.php"><i class="fas solid fa-building"></i> Mis obras</a>
+        <a href="ver_servicios.php"><i class="fa-brands fa-readme"></i></i> Ver Servicios</a>
         <a href="logout.php" class="text-danger"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
     </div>
 
     <!-- Contenido Principal -->
     <div class="content">
         <h1>Bienvenido, <?= htmlspecialchars($nombre_cliente) ?></h1>
-        <p>Desde este panel puedes gestionar tus presupuestos, contratos, y actualizar tu perfil.</p>
-        
+        <p>Consulta nuestros servicios disponibles:</p>
+
         <div class="row">
-            <div class="col-md-4">
-                <div class="card text-white bg-primary mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Mis Presupuestos</h5>
-                        <p class="card-text">Consulta los presupuestos generados y descarga los PDF.</p>
-                        <a href="consultar_presu_clientes.php" class="btn btn-light">Ver Presupuestos</a>
+            <?php while ($servicio = $result_servicios->fetch_assoc()): ?>
+                <div class="col-md-4 mb-4">
+                    <div class="card service-card">
+                        <img src="<?= htmlspecialchars($servicio['imagen']) ?>" class="card-img-top" alt="<?= htmlspecialchars($servicio['nombre']) ?>">
+                        <div class="card-body">
+                            <h5 class="card-title"><?= htmlspecialchars($servicio['nombre']) ?></h5>
+                            <p class="card-text text-truncate"><?= htmlspecialchars($servicio['descripcion']) ?></p>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#serviceModal<?= $servicio['id_servicio'] ?>">
+                                Ver Más
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-white bg-success mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Mi Perfil</h5>
-                        <p class="card-text">Actualiza tu información personal y mantén tus datos al día.</p>
-                        <a href="perfil_cliente.php" class="btn btn-light">Actualizar Perfil</a>
+
+                <!-- Modal para servicio -->
+                <div class="modal fade" id="serviceModal<?= $servicio['id_servicio'] ?>" tabindex="-1" aria-labelledby="serviceModalLabel<?= $servicio['id_servicio'] ?>" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="serviceModalLabel<?= $servicio['id_servicio'] ?>">
+                                    <?= htmlspecialchars($servicio['nombre']) ?>
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <img src="<?= htmlspecialchars($servicio['imagen']) ?>" class="img-fluid mb-3" alt="<?= htmlspecialchars($servicio['nombre']) ?>">
+                                <p><?= htmlspecialchars($servicio['descripcion']) ?></p>
+                                <p><strong>Precio:</strong> $<?= number_format($servicio['precio'], 2) ?></p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            <?php endwhile; ?>
         </div>
     </div>
 </div>

@@ -65,7 +65,7 @@ if ($conn->connect_error)
                 </button>
                 <!-- Generar PDF -->
                 <a href="generar_pdf_presupuesto.php?id_presupuesto=<?= $id_presupuesto ?>" class="btn btn-success btn-sm">
-                    <i class="fas fa-file-pdf"></i> Generar PDF
+                    <i class="fas fa-file-pdf"></i> Generar Presupuesto
                 </a>
                 <a href="enviar_correo_propuesta.php?id=<?= $id_presupuesto ?>&file=<?= urlencode($file_path) ?>" 
                    class="btn btn-secondary btn-sm send-button" 
