@@ -25,49 +25,66 @@ if ($conn->connect_error)
             <i class="fas fa-plus"></i> Agregar Presupuesto
         </button>
         <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Cliente</th>
-                    <th>Dirección</th>
-                    <th>Fecha</th>
-                    <th>Total</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                $query = "SELECT p.id_presupuesto, c.nombre AS cliente, d.calle AS direccion, p.fecha_elaboracion, p.total
-                          FROM presupuestos p
-                          INNER JOIN clientes c ON p.id_cliente = c.id_cliente
-                          INNER JOIN direccion_obra d ON p.id_direccion = d.id_direccion";
-                $result = $conn->query($query);
-                while ($row = $result->fetch_assoc()): ?>
-                    <tr>
-                        <td><?= $row['id_presupuesto'] ?></td>
-                        <td><?= $row['cliente'] ?></td>
-                        <td><?= $row['direccion'] ?></td>
-                        <td><?= $row['fecha_elaboracion'] ?></td>
-                        <td>$<?= number_format($row['total'], 2) ?></td>
-                        <td>
-                            <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
-                                data-bs-target="#editPresupuestoModal">
-                                <i class="fas fa-edit"></i> Editar
-                            </button>
-                            <button class="btn btn-danger btn-sm"
-                                onclick="confirmarEliminacion(<?= $row['id_presupuesto'] ?>)">
-                                <i class="fas fa-trash"></i> Eliminar
-                            </button>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Dirección</th>
+            <th>Fecha</th>
+            <th>Total</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php
+        $query = "SELECT p.id_presupuesto, c.nombre AS cliente, d.calle AS direccion, 
+                         p.fecha_elaboracion, p.total
+                  FROM presupuestos p
+                  INNER JOIN clientes c ON p.id_cliente = c.id_cliente
+                  INNER JOIN direccion_obra d ON p.id_direccion = d.id_direccion";
+        $result = $conn->query($query);
 
-                            <a href="generar_pdf.php?id_presupuesto=<?= $row['id_presupuesto'] ?>"
-                                class="btn btn-success btn-sm">
-                                <i class="fas fa-file-pdf"></i> Generar PDF
-                            </a>
-                        </td>
-                    </tr>
-                <?php endwhile; ?>
-            </tbody>
-        </table>
+        while ($row = $result->fetch_assoc()):
+            $id_presupuesto = htmlspecialchars($row['id_presupuesto']);
+            $file_path = "../pdf/Proposal_" . $id_presupuesto . ".pdf";
+        ?>
+        <tr>
+            <td><?= $row['id_presupuesto'] ?></td>
+            <td><?= htmlspecialchars($row['cliente']) ?></td>
+            <td><?= htmlspecialchars($row['direccion']) ?></td>
+            <td><?= htmlspecialchars($row['fecha_elaboracion']) ?></td>
+            <td>$<?= number_format($row['total'], 2) ?></td>
+            <td>
+                <!-- Botón para editar -->
+                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editPresupuestoModal">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <!-- Botón para eliminar -->
+                <button class="btn btn-danger btn-sm" onclick="confirmarEliminacion(<?= $id_presupuesto ?>)">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+                <!-- Generar PDF -->
+                <a href="generar_pdf_presupuesto.php?id_presupuesto=<?= $id_presupuesto ?>" class="btn btn-success btn-sm">
+                    <i class="fas fa-file-pdf"></i> Generar PDF
+                </a>
+                <a href="enviar_correo_propuesta.php?id=<?= $id_presupuesto ?>&file=<?= urlencode($file_path) ?>" 
+                   class="btn btn-secondary btn-sm send-button" 
+                   title="Enviar PDF" 
+                   data-folio="<?= $id_presupuesto ?>" 
+                   onclick="enviarPDF(this)">
+                    <i class="fas fa-envelope"></i> Enviar Presupuesto
+                </a>
+                <!-- Visualizar PDF si existe -->
+                <?php if (file_exists($file_path)): ?>
+                    <a href="<?= htmlspecialchars($file_path) ?>" target="_blank" class="btn btn-info btn-sm" title="Ver PDF">
+                        <i class="fas fa-eye"></i> Ver Presupuesto
+                    </a>
+                <?php endif; ?>
+            </td>
+        </tr>
+        <?php endwhile; ?>
+    </tbody>
+</table>
     </div>
 
     <!-- Modal: Agregar Presupuesto -->

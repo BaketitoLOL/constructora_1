@@ -23,55 +23,73 @@ if ($conn->connect_error)
             <i class="fas fa-plus"></i> Agregar Obra
         </button>
         <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Cliente</th>
-                    <th>Dirección</th>
-                    <th>Fecha de Inicio</th>
-                    <th>Total</th>
-                    <th>Estatus</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                $query = "SELECT o.id_obra, c.nombre AS cliente, CONCAT(d.calle, ', ', d.ciudad) AS direccion, 
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Dirección</th>
+            <th>Fecha de Inicio</th>
+            <th>Total</th>
+            <th>Estatus</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php
+        // Consulta para obtener los datos de las obras
+        $query = "SELECT o.id_obra, c.nombre AS cliente, CONCAT(d.calle, ', ', d.ciudad) AS direccion, 
                           o.fecha_inicio, o.total, o.estatus
-                          FROM obras o
-                          INNER JOIN clientes c ON o.id_cliente = c.id_cliente
-                          INNER JOIN direccion_obra d ON o.id_clave_secundaria = d.clave_secundaria";
-                $result = $conn->query($query);
-                while ($row = $result->fetch_assoc()): ?>
-                    <tr>
-                        <td><?= $row['id_obra'] ?></td>
-                        <td><?= $row['cliente'] ?></td>
-                        <td><?= $row['direccion'] ?></td>
-                        <td><?= $row['fecha_inicio'] ?></td>
-                        <td>$<?= number_format($row['total'], 2) ?></td>
-                        <td><?= $row['estatus'] ?></td>
-                        <td>
-                            <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editObraModal"
-                                onclick="cargarDatosEditar(<?= htmlspecialchars(json_encode($row)) ?>)">
-                                <i class="fas fa-edit"></i> Editar
-                            </button>
-                            <button class="btn btn-danger btn-sm" onclick="eliminarObra(<?= $row['id_obra'] ?>)">
-                                <i class="fas fa-trash"></i> Eliminar
-                            </button>
-                            <a href="generar_contrato.php?id_obra=<?= $row['id_obra'] ?>" class="btn btn-success btn-sm"
-                                target="_blank">
-                                <i class="fas fa-file-pdf"></i> Generar Contrato
-                            </a>
-                            <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#emailModal">
-                                <i class="fas fa-envelope"></i> Enviar Correo
-                            </button>
+                  FROM obras o
+                  INNER JOIN clientes c ON o.id_cliente = c.id_cliente
+                  INNER JOIN direccion_obra d ON o.id_clave_secundaria = d.clave_secundaria";
+        $result = $conn->query($query);
 
-                        </td>
-                    </tr>
-                <?php endwhile; ?>
-            </tbody>
-        </table>
-    </div>
+        // Iterar sobre los resultados
+        while ($row = $result->fetch_assoc()):
+            $id_obra = htmlspecialchars($row['id_obra']);
+            $file_path = "../pdf/Contract_" . $id_obra . ".pdf"; // Ruta del archivo PDF
+        ?>
+            <tr>
+                <td><?= $row['id_obra'] ?></td>
+                <td><?= htmlspecialchars($row['cliente']) ?></td>
+                <td><?= htmlspecialchars($row['direccion']) ?></td>
+                <td><?= htmlspecialchars($row['fecha_inicio']) ?></td>
+                <td>$<?= number_format($row['total'], 2) ?></td>
+                <td><?= htmlspecialchars($row['estatus']) ?></td>
+                <td>
+                    <!-- Botón para editar -->
+                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editObraModal"
+                        onclick="cargarDatosEditar(<?= htmlspecialchars(json_encode($row)) ?>)">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                    <!-- Botón para eliminar -->
+                    <button class="btn btn-danger btn-sm" onclick="eliminarObra(<?= $row['id_obra'] ?>)">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </button>
+                    <!-- Generar contrato PDF -->
+                    <a href="generar_pdf_contrato.php?id_obra=<?= $id_obra ?>" class="btn btn-success btn-sm">
+                        <i class="fas fa-file-pdf"></i> Generar Contrato
+                    </a>
+                    <!-- Enviar PDF por correo -->
+                    <a href="enviar_correo.php?id=<?= $id_obra ?>&file=<?= urlencode($file_path) ?>" 
+                       class="btn btn-secondary btn-sm send-button" 
+                       title="Enviar PDF" 
+                       data-folio="<?= $id_obra ?>" 
+                       onclick="enviarPDF(this)">
+                        <i class="fas fa-envelope"></i> Enviar Contrato
+                    </a>
+                    <!-- Visualizar PDF si existe -->
+                    <?php if (file_exists($file_path)): ?>
+                        <a href="<?= htmlspecialchars($file_path) ?>" target="_blank" class="btn btn-info btn-sm" title="Ver PDF">
+                            <i class="fas fa-eye"></i> Ver Contrato
+                        </a>
+                    <?php endif; ?>
+                </td>
+            </tr>
+        <?php endwhile; ?>
+    </tbody>
+</table>
+</div>
 
     <!-- Modal: Agregar Obra -->
     <div class="modal fade" id="addObraModal" tabindex="-1" aria-labelledby="addObraModalLabel" aria-hidden="true">

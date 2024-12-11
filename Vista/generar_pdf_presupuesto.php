@@ -2,22 +2,25 @@
 require '../vendor/setasign/fpdf/fpdf.php'; // Ruta a FPDF
 include '../modelo/db_connection.php';
 
-if (!isset($_GET['id'])) {
-    die("ID del presupuesto no proporcionado.");
+// Validar que el parámetro `id_presupuesto` existe y es válido
+if (!isset($_GET['id_presupuesto']) || !is_numeric($_GET['id_presupuesto'])) {
+    die("ID del presupuesto no proporcionado o inválido.");
 }
-
-$id_presupuesto = intval($_GET['id']);
+$id_presupuesto = intval($_GET['id_presupuesto']);
 
 // Consultar datos del presupuesto
 $query_presupuesto = "
-    SELECT p.id_presupuesto, p.fecha_elaboracion, p.total, p.estatus, p.observaciones, 
-           c.nombre AS cliente_nombre, c.apellido_paterno AS cliente_apellido, c.correo AS cliente_correo,
-           c.telefono_personal AS cliente_telefono
+    SELECT p.fecha_elaboracion, p.observaciones, p.total, 
+           c.nombre AS cliente, d.calle, d.ciudad, d.estado, d.codigo_postal
     FROM presupuestos p
     INNER JOIN clientes c ON p.id_cliente = c.id_cliente
-    WHERE p.id_presupuesto = ?
-";
+    INNER JOIN direccion_obra d ON p.id_direccion = d.id_direccion
+    WHERE p.id_presupuesto = ?";
+
 $stmt_presupuesto = $conn->prepare($query_presupuesto);
+if (!$stmt_presupuesto) {
+    die("Error al preparar la consulta del presupuesto: " . $conn->error);
+}
 $stmt_presupuesto->bind_param("i", $id_presupuesto);
 $stmt_presupuesto->execute();
 $result_presupuesto = $stmt_presupuesto->get_result();
@@ -32,78 +35,78 @@ $query_detalle = "
     SELECT dp.cantidad, dp.subtotal, s.nombre, s.precio
     FROM detalle_presupuesto dp
     INNER JOIN servicios s ON dp.id_servicio = s.id_servicio
-    WHERE dp.id_presupuesto = ?
-";
+    WHERE dp.id_presupuesto = ?";
 $stmt_detalle = $conn->prepare($query_detalle);
+if (!$stmt_detalle) {
+    die("Error al preparar la consulta de detalles: " . $conn->error);
+}
 $stmt_detalle->bind_param("i", $id_presupuesto);
 $stmt_detalle->execute();
 $result_detalle = $stmt_detalle->get_result();
 
 // Crear PDF con FPDF
-$pdf = new FPDF();
-$pdf->AddPage();
-$pdf->SetFont('Arial', 'B', 16);
+try {
+    $file_path = "../pdf/Proposal_" . $id_presupuesto . ".pdf";
 
-// Cabecera
-$pdf->Cell(190, 10, 'PROPOSAL', 0, 1, 'C');
-$pdf->Ln(5);
+    // Eliminar archivo existente
+    if (file_exists($file_path)) {
+        unlink($file_path);
+    }
 
-// Información de la empresa
-$pdf->SetFont('Arial', '', 12);
-$pdf->Cell(190, 10, 'FAMILY DRYWALL LLC.', 0, 1, 'C');
-$pdf->Cell(190, 10, '1100 S. NEW RD', 0, 1, 'C');
-$pdf->Cell(190, 10, 'PLEASANTVILLE, N.J. 08232', 0, 1, 'C');
-$pdf->Ln(5);
+    $pdf = new FPDF();
+    $pdf->AddPage();
+    $pdf->SetFont('Arial', 'B', 16);
 
-// Información del cliente y del presupuesto
-$pdf->Cell(95, 10, 'Proposal Submitted To:', 0, 0);
-$pdf->Cell(95, 10, 'Date: ' . $presupuesto['fecha_elaboracion'], 0, 1);
-$pdf->Cell(95, 10, 'Client Name: ' . $presupuesto['cliente_nombre'] . ' ' . $presupuesto['cliente_apellido'], 0, 0);
-$pdf->Cell(95, 10, 'Phone: ' . $presupuesto['cliente_telefono'], 0, 1);
-$pdf->Cell(95, 10, 'Email: ' . $presupuesto['cliente_correo'], 0, 1);
-$pdf->Ln(5);
+    // Cabecera
+    $pdf->Cell(190, 10, 'PROPOSAL', 0, 1, 'C');
+    $pdf->Ln(5);
+    $pdf->SetFont('Arial', '', 12);
+    $pdf->Cell(190, 10, 'FAMILY DRYWALL LLC.', 0, 1, 'C');
+    $pdf->Cell(190, 10, '1100 S. NEW RD', 0, 1, 'C');
+    $pdf->Cell(190, 10, 'PLEASANTVILLE, N.J. 08232', 0, 1);
+    $pdf->Ln(10);
 
-// Especificaciones del trabajo
-$pdf->SetFont('Arial', 'B', 12);
-$pdf->Cell(190, 10, 'Specifications:', 0, 1);
-$pdf->SetFont('Arial', '', 12);
-$pdf->MultiCell(190, 10, 'This proposal includes the following services as per the specifications discussed:');
-$pdf->Ln(5);
+    // Datos del cliente y trabajo
+    $pdf->Cell(95, 10, 'PROPOSAL SUBMITTED TO:', 0, 0);
+    $pdf->Cell(95, 10, 'DATE: ' . $presupuesto['fecha_elaboracion'], 0, 1);
+    $pdf->Cell(95, 10, 'BUILDER NAME: ' . $presupuesto['cliente'], 0, 1);
+    $pdf->Cell(95, 10, 'JOB LOCATION: ' . $presupuesto['calle'], 0, 1);
+    $pdf->Cell(95, 10, 'CITY, STATE: ' . $presupuesto['ciudad'] . ', ' . $presupuesto['estado'], 0, 1);
+    $pdf->Ln(5);
 
-// Servicios incluidos
-$pdf->SetFont('Arial', 'B', 12);
-$pdf->Cell(90, 10, 'Service', 1);
-$pdf->Cell(30, 10, 'Quantity', 1);
-$pdf->Cell(30, 10, 'Unit Price', 1);
-$pdf->Cell(40, 10, 'Subtotal', 1);
-$pdf->Ln();
+    // Descripción del trabajo
+    $pdf->SetFont('Arial', 'B', 12);
+    $pdf->Cell(190, 10, 'JOB: Drywall and Spackle.', 0, 1);
+    $pdf->SetFont('Arial', '', 12);
+    $pdf->Cell(190, 10, 'SPECIFICATIONS: Use Screws.', 0, 1);
+    $pdf->Cell(190, 10, '144 SHEETROCK TO INSTALL AND SPACKLE.', 0, 1);
+    $pdf->Ln(5);
 
-$pdf->SetFont('Arial', '', 12);
-while ($row = $result_detalle->fetch_assoc()) {
-    $pdf->Cell(90, 10, $row['nombre'], 1);
-    $pdf->Cell(30, 10, $row['cantidad'], 1);
-    $pdf->Cell(30, 10, '$' . number_format($row['precio'], 2), 1);
-    $pdf->Cell(40, 10, '$' . number_format($row['subtotal'], 2), 1);
-    $pdf->Ln();
+    // Condiciones de pago
+    $pdf->SetFont('Arial', '', 12);
+    $pdf->MultiCell(190, 10, "We hereby propose to furnish labor --complete in accordance with the above specifications, for the sum of \n$" . number_format($presupuesto['total'], 2), 0, 'L');
+    $pdf->Ln(5);
+    $pdf->Cell(190, 10, 'HALF OF THE AMOUNT DUE WHEN SHEETROCK INSTALLED----$', 0, 1);
+    $pdf->Cell(190, 10, 'FINAL PAYMENT DUE AT COMPLETION OF JOB----$', 0, 1);
+    $pdf->Ln(5);
+
+    // Garantías y condiciones
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->MultiCell(190, 10, "All material is guaranteed to be as specified. All work to be completed in a workmanlike manner according to standard practices. Any alteration or deviation from above specifications involving extra costs will be executed only upon written orders and will become an extra charge over and above the estimate. All agreements contingent upon strikes, accident, or delays beyond our control.", 0, 'L');
+    $pdf->Ln(5);
+
+    // Crear directorio si no existe
+    if (!is_dir('../pdf')) {
+        mkdir('../pdf', 0755, true);
+    }
+
+    $pdf->Output('F', $file_path);
+    echo "PDF generado exitosamente en la ruta: " . $file_path;
+} catch (Exception $e) {
+    die("Error al generar el PDF: " . $e->getMessage());
 }
-$pdf->Ln(5);
 
-// Total y pagos
-$pdf->SetFont('Arial', 'B', 12);
-$pdf->Cell(190, 10, 'Payment Terms:', 0, 1);
-$pdf->SetFont('Arial', '', 12);
-$pdf->MultiCell(190, 10, 'Half of the total amount is due when work starts, and the remaining half upon completion.');
-$pdf->Cell(95, 10, 'Total Amount:', 0, 0);
-$pdf->Cell(95, 10, '$' . number_format($presupuesto['total'], 2), 0, 1);
-
-// Firma y aceptación
-$pdf->Ln(10);
-$pdf->Cell(190, 10, 'Authorized Signature: ________________________', 0, 1);
-$pdf->Ln(5);
-$pdf->Cell(190, 10, 'Acceptance of Proposal:', 0, 1);
-$pdf->Ln(5);
-$pdf->Cell(190, 10, 'Accepted By: ________________________________', 0, 1);
-
-// Salida del PDF
-$pdf->Output('I', 'Presupuesto_' . $presupuesto['id_presupuesto'] . '.pdf');
-?>
+// Cerrar recursos
+$stmt_presupuesto->close();
+$stmt_detalle->close();
+$conn->close();
